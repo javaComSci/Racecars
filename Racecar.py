@@ -1,40 +1,40 @@
 import random
 import math
 
-track = []
-# get the track that the car will run on
-with open("Track1.txt", "r") as f:
-    for line in f:
-        track.append(list(line)[:-1])
-starting_row = 1
-starting_col = 2
-ending_point_col = 70
-track_width = len(track[0])
-track_height = len(track)
-print("TRACK WIDTH: ", track_width)
-print("TRACK HEIGHT: ", track_height)
+MANHATTAN = 0
+EUCLIDIAN = 1
 
-
+# class that contains the information needed for a racecar
 class Racecar:
     def __init__(self, directions):
         self.directions = directions
     
-    # calculate the distance from the exit
-    def calculate_fitness(self, current_row, current_col):
-        return abs(current_col - ending_point_col)
 
-    # get the directions provided
-    def get_directions(self):
-        return self.directions
+    # calculate the distance from the exit
+    def calculate_fitness(self, current_row, current_col, ending_row, ending_col, distance=MANHATTAN):
+        if distance == EUCLIDIAN:
+            return ((current_col - ending_col)**2 + (current_row - ending_row)**2)**0.5
+        else:
+            return abs(current_col - ending_col) + abs(current_row - ending_row)
+
+
 
     # see where the car ends up with directions
-    def go(self):
+    def go(self, track):
         # set the current points
-        current_row = starting_row
-        current_col = starting_col
+        current_row = track.starting_row
+        current_col = track.starting_col
+
+        # keep track of the directions that it has executed
+        done = 0
 
         # go through the directions
         for direction in self.directions:
+            # keep track of previous position before the move
+            prev_row = current_row
+            prev_col = current_col
+
+            # update the positions
             if direction == "U":
                 current_row -= 1
             elif direction == "D":
@@ -45,50 +45,13 @@ class Racecar:
                 current_col += 1
 
             # check if valid move
-            if current_row < 0 or current_row >= track_height:
-                return -1
-            if current_col < 0 or current_col >= track_width:   
-                return -1
-            if track[current_row][current_col] != " ":
-                return -1
-        
-        return self.calculate_fitness(current_row, current_col)
+            if (current_row < 0 or current_row >= track.height) or (current_col < 0 or current_col >= track.width) or (track.track[current_row][current_col] != " "):
+                fitness = self.calculate_fitness(prev_row, prev_col, track.ending_row, track.ending_col)
+                return (self.directions[:done], fitness)
             
+            # add it to the directions that it has completed
+            done += 1
 
-
-
-# all the possible directions of the racecar
-directions = ["D", "U", "L", "R"]
-
-
-# create the racecars with random directions
-racecars = []
-for i in range(5):
-    initial_directions = []
-    for j in range(5):
-        initial_directions.append(random.choice(directions))
-    racecar = Racecar(initial_directions)
-    racecars.append(racecar)
-
-
-# try this number of evolutions
-for evolutions in range(20):
-    directions_to_fitness = {}
-    # see how well this set of racecars does
-    for racecar in racecars:
-        result = racecar.go()
-        if result != -1:
-            directions_to_fitness[tuple(racecar.get_directions())] = result
-    print(directions_to_fitness)
-    # create the new set of racecars
-    racecars = []
-    directions_to_fitness = {k: v for k, v in sorted(directions_to_fitness.items(), key=lambda item: item[1])}
-    for key, value in directions_to_fitness.items():
-        new_directions = list(key)
-        new_directions.append(random.choice(directions))
-        racecars.append(Racecar(new_directions))
-
-
-
-
-
+        # all directions have been completed
+        fitness = self.calculate_fitness(current_row, current_col, track.ending_row, track.ending_col)
+        return (self.directions, fitness)
