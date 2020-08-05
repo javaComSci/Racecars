@@ -94,11 +94,16 @@ if __name__ == "__main__":
                 initial_directions.append(random.choice(directions))
             racecar = Racecar(initial_directions)
             racecars.append(racecar)
-        
 
-    # get the racecars and how much they go
+
+    # view path of best racecar
     for racecar in racecars:
         directions_completed, distance = racecar.go(track)
-        print(directions_completed, distance)
+        directions_to_distance[tuple(directions_completed)] = distance
+    best_directions = sorted(directions_to_distance, key=directions_to_distance.get)
+    best_racecar = Racecar(list(best_directions[0]))
+    print(best_directions[0])
+    best_racecar.go(track, view=True)
+
 
 

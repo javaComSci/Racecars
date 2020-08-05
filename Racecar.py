@@ -20,7 +20,10 @@ class Racecar:
 
 
     # see where the car ends up with directions
-    def go(self, track):
+    def go(self, track, view=False):
+        if view == True:
+            modify_track = [row[:] for row in track.track]
+        
         # set the current points
         current_row = track.starting_row
         current_col = track.starting_col
@@ -33,6 +36,9 @@ class Racecar:
             # keep track of previous position before the move
             prev_row = current_row
             prev_col = current_col
+
+            if view == True:
+                modify_track[prev_row][prev_col] = "*"
 
             # update the positions
             if direction == "U":
@@ -47,10 +53,21 @@ class Racecar:
             # check if valid move
             if (current_row < 0 or current_row >= track.height) or (current_col < 0 or current_col >= track.width) or (track.track[current_row][current_col] != " "):
                 fitness = self.calculate_fitness(prev_row, prev_col, track.ending_row, track.ending_col)
+                # if track.track[current_row][current_col] != " ":
+                #     print("BLOCK!!")
                 return (self.directions[:done], fitness)
             
             # add it to the directions that it has completed
             done += 1
+
+        # view how the track went
+        if view == True:
+            for row in range(len(modify_track)):
+                for col in range(len(modify_track[0])):
+                    print(modify_track[row][col], end="")
+                print()
+                
+        
 
         # all directions have been completed
         fitness = self.calculate_fitness(current_row, current_col, track.ending_row, track.ending_col)
