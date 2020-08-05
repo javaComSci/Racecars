@@ -4,6 +4,13 @@ from Racecar import Racecar
 from Track import Track
 
 
+# size in each generation
+GENERATION_SIZE = 16
+
+# all the possible directions of the racecar
+directions = ["D", "U", "L", "R"]
+
+
 # merging directions to produce new directions
 def merge(directions1, directions2):
     # determine where to crossover the directions
@@ -28,23 +35,85 @@ def merge(directions1, directions2):
 
 
 
+# mutate the given direction list the given number of times
+def mutate(parent, num_mutations):
+    # create the mutated racecars
+    racecars = []
+
+    # create that many number of mutations to create racecars
+    for i in range(num_mutations):
+        new_parent = parent[:]
+        mutation_point = random.randrange(len(parent))
+        if new_parent[mutation_point] == "D":
+            mutation_value = random.choice(["U", "L", "R"])
+        elif new_parent[mutation_point] == "U":
+            mutation_value = random.choice(["D", "L", "R"])
+        elif new_parent[mutation_point] == "R":
+            mutation_value = random.choice(["D", "L", "U"])
+        elif new_parent[mutation_point] == "L":
+            mutation_value = random.choice(["D", "R", "U"])
+        new_parent[mutation_point] = mutation_value
+        racecars.append(Racecar(new_parent))
+    
+    return racecars
+
+
+
+# select the parents for creating offspring
+def pick_parents(directions_to_distance):
+    if len(directions_to_distance.keys()) == 1:
+        return list(list(directions_to_distance.keys())[0]), list(list(directions_to_distance.keys())[0])
+    else:
+        return list(list(directions_to_distance.keys())[0]), list(list(directions_to_distance.keys())[1])
+
+
+# generate the next generation
+def generate_racecars(directions_to_distance):
+    # create the new list of racecars
+    racecars = []
+
+    if len(directions_to_distance.keys()) > 0:
+        # randomly pick parents of the generation
+        parent1, parent2 = pick_parents(directions_to_distance)
+
+        # add orignal parents in the generation
+        racecars.append(Racecar(parent1))
+        racecars.append(Racecar(parent2))
+
+        # merge to create offspring
+        crossover1, crossover2 = merge(parent1, parent2)
+        racecars.append(Racecar(crossover1))
+        racecars.append(Racecar(crossover2))
+
+        # mutate to create offspring
+        mutations1 = mutate(parent1, int((GENERATION_SIZE - 4)/2))
+        mutations2 = mutate(parent2, int((GENERATION_SIZE - 4)/2))
+        racecars += mutations1
+        racecars += mutations2
+    else:
+        # create racecars with that specific number of directions
+        for i in range(GENERATION_SIZE):
+            initial_directions = []
+            for j in range(5):
+                initial_directions.append(random.choice(directions))
+            racecar = Racecar(initial_directions)
+            racecars.append(racecar)
+    
+    # add one more direction to each of the directions of the racecars
+    for racecar in racecars:
+        racecar.directions.append(random.choice(directions))
+
+    return racecars
+
+
+
 if __name__ == "__main__":
     # create a track instance
     track_file = "Track1.txt"
     track = Track(track_file)
 
-    # all the possible directions of the racecar
-    directions = ["D", "U", "L", "R"]
-
-    # create 5 racecars to start with - first generation
-    racecars = []
-    for i in range(4):
-        initial_directions = []
-        for j in range(5):
-            initial_directions.append(random.choice(directions))
-        racecar = Racecar(initial_directions)
-        racecars.append(racecar)
-    
+    # create racecars to start with - first generation
+    racecars = generate_racecars({})
 
     # go through a given number of evolutions
     for evolutions in range(100):
@@ -58,42 +127,12 @@ if __name__ == "__main__":
             # print(directions_completed, distance)
             directions_to_distance[tuple(directions_completed)] = distance
         
-        # sort the racecars by fitness
-        best_directions = sorted(directions_to_distance, key=directions_to_distance.get)
+        # sort the racecars by fitness and remove empty directions
+        directions_to_distance = {k: v for k, v in sorted(directions_to_distance.items(), key=lambda item: item[1]) if len(k) != 0}
+        # print(directions_to_distance)
 
-        # remove the empty set of directions
-        cleaned_best_directions = []
-        for direction in best_directions:
-            if len(direction) > 0:
-                cleaned_best_directions.append(direction)
-        best_directions = cleaned_best_directions
-
-
-        # create the new set of racecars
-        racecars = []
-
-        # merge the directions together
-        offspring1 = None
-        offspring2 = None
-        if len(best_directions) > 1:
-            best_directions_0 = list(best_directions[0])
-            best_directions_0.append(random.choice(directions))
-            racecars.append(Racecar(best_directions_0))
-        if len(best_directions) > 2:
-            offspring1, offspring2 = merge(best_directions[0], best_directions[1])
-            racecars.append(Racecar(offspring1))
-            racecars.append(Racecar(offspring2))
-            best_directions_1 = list(best_directions[1])
-            best_directions_1.append(random.choice(directions))
-            racecars.append(Racecar(best_directions_1))
-        
-        # create the new racecars
-        while len(racecars) < 4:
-            initial_directions = []
-            for j in range(5):
-                initial_directions.append(random.choice(directions))
-            racecar = Racecar(initial_directions)
-            racecars.append(racecar)
+        # generate the new racecars based on existing directions
+        racecars = generate_racecars(directions_to_distance)
 
 
     # view path of best racecar
@@ -104,6 +143,3 @@ if __name__ == "__main__":
     best_racecar = Racecar(list(best_directions[0]))
     print(best_directions[0])
     best_racecar.go(track, view=True)
-
-
-

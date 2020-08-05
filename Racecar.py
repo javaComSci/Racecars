@@ -7,7 +7,7 @@ EUCLIDIAN = 1
 # class that contains the information needed for a racecar
 class Racecar:
     def __init__(self, directions):
-        self.directions = directions
+        self.directions = list(directions)
     
 
     # calculate the distance from the exit
