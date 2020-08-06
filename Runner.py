@@ -5,7 +5,7 @@ from Track import Track
 
 
 # size in each generation
-GENERATION_SIZE = 16
+GENERATION_SIZE = 32
 
 # all the possible directions of the racecar
 directions = ["D", "U", "L", "R"]
@@ -60,13 +60,30 @@ def mutate(parent, num_mutations):
 
 
 # select the parents for creating offspring
-def pick_parents(directions_to_distance):
-    if len(directions_to_distance.keys()) == 1:
-        return list(list(directions_to_distance.keys())[0]), list(list(directions_to_distance.keys())[0])
+def pick_parents(directions_to_distance, porportional=True):
+
+    # CAN PICK PARENTS IN BOTH WAYS
+
+    if porportional == False:
+        # NORMAL PICKING ONLY BEST PARENTS
+        if len(directions_to_distance.keys()) == 1:
+            return list(list(directions_to_distance.keys())[0]), list(list(directions_to_distance.keys())[0])
+        else:
+            return list(list(directions_to_distance.keys())[0]), list(list(directions_to_distance.keys())[1])
     else:
-        return list(list(directions_to_distance.keys())[0]), list(list(directions_to_distance.keys())[1])
+        # PROPORTIONAL SELECTION
+        directions_to_recripriocal_distance = {k: 1/v**2 for k, v in directions_to_distance.items()}
+        total_distance = sum(directions_to_recripriocal_distance.values()) + 0.01
+        directions_to_porportion = {k: v/total_distance for k, v in directions_to_recripriocal_distance.items()}
+
+        print(directions_to_porportion)
+        parents = random.choices(list(directions_to_porportion.keys()), weights = directions_to_porportion.values(), k = 2)
+        print(parents)
+        return list(parents[0]), list(parents[1])
 
 
+
+ 
 # generate the next generation
 def generate_racecars(directions_to_distance):
     # create the new list of racecars
@@ -86,22 +103,23 @@ def generate_racecars(directions_to_distance):
         racecars.append(Racecar(crossover2))
 
         # mutate to create offspring
-        mutations1 = mutate(parent1, int((GENERATION_SIZE - 4)/2))
-        mutations2 = mutate(parent2, int((GENERATION_SIZE - 4)/2))
+        mutations1 = mutate(crossover1, int((GENERATION_SIZE - 4)/2))
+        mutations2 = mutate(crossover2, int((GENERATION_SIZE - 4)/2))
         racecars += mutations1
         racecars += mutations2
     else:
         # create racecars with that specific number of directions
         for i in range(GENERATION_SIZE):
             initial_directions = []
-            for j in range(5):
+            for j in range(2):
                 initial_directions.append(random.choice(directions))
             racecar = Racecar(initial_directions)
             racecars.append(racecar)
     
     # add one more direction to each of the directions of the racecars
     for racecar in racecars:
-        racecar.directions.append(random.choice(directions))
+        for i in range(5):
+            racecar.directions.append(random.choice(directions))
 
     return racecars
 
@@ -109,7 +127,7 @@ def generate_racecars(directions_to_distance):
 
 if __name__ == "__main__":
     # create a track instance
-    track_file = "Track1.txt"
+    track_file = "Track3.txt"
     track = Track(track_file)
 
     # create racecars to start with - first generation

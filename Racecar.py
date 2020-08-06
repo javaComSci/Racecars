@@ -55,7 +55,8 @@ class Racecar:
                 fitness = self.calculate_fitness(prev_row, prev_col, track.ending_row, track.ending_col)
                 # if track.track[current_row][current_col] != " ":
                 #     print("BLOCK!!")
-                return (self.directions[:done], fitness)
+                # return (self.directions[:done], fitness)
+                return self.directions, math.inf
             
             # add it to the directions that it has completed
             done += 1

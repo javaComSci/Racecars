@@ -17,20 +17,20 @@ class Track:
                 self.track.append(list(line)[:-1])
         
         ######## TRACK1 #########
-        # set the starting position of the track
-        self.starting_row = 2
-        self.starting_col = 1
-        # set the ending position of the track
-        self.ending_row = 3
-        self.ending_col = 69
-    
-        ######## TRACK2 #########
         # # set the starting position of the track
         # self.starting_row = 2
         # self.starting_col = 1
         # # set the ending position of the track
-        # self.ending_row = 17
-        # self.ending_col = 34
+        # self.ending_row = 3
+        # self.ending_col = 69
+    
+        ######## TRACK2 #########
+        # set the starting position of the track
+        self.starting_row = 2
+        self.starting_col = 1
+        # set the ending position of the track
+        self.ending_row = 18
+        self.ending_col = 34
 
         # get the boundaries of the track
         self.width = len(self.track[0])
